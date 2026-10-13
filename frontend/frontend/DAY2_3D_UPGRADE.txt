@@ -1,0 +1,8 @@
+Day 2 visual update / Bharath frontend
+- 3D office is now the default initial view, not a static photo.
+- The stage fills the content column with 600–940px of height.
+- Team names, dashboard navigation and original movement/proximity engine preserved.
+- Entire Office / Studio / Ideation Lab / Focus Lounge camera focus.
+- Working movement map still accessible via 2D map toggle.
+- Manual validation needed: npm install, npm test, npm run build, test WebGL/browser.
+- Upload is not automatic. Commit and redeploy after local validation.

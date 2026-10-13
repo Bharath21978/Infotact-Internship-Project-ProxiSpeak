@@ -4,3 +4,52 @@
 @media(max-width:840px){.sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-102%);transition:transform .22s ease;width:260px;box-shadow:13px 0 56px #0006}.sidebar-show{transform:translateX(0)}.sidebar-exit{display:grid;margin-left:auto}.nav-backdrop{display:block;position:fixed;inset:0;background:#030713ad;z-index:14}.mobile-menu{display:grid;margin-right:7px}.titlebar{height:65px}.hero-side{display:none}.secondary-page{padding-top:30px}.sprint-stats>div{padding:13px}.sprint-stats strong{font-size:29px}}
 @media(max-width:620px){.page{padding:25px 14px}.titlebar{padding:0 14px}.titlebar-actions{gap:8px}.titlebar-actions .sprint-pill{display:none}.top-help{display:none}.titlebar-actions .badge-avatar{display:none}.hero-title h1{font-size:32px}.hero-title p{font-size:11px}.workspace-heading h2{font-size:19px}.avatar-stack>b{display:none}.map-toolbar{padding:8px;min-height:47px}.map-resolution,.map-toolbar-title i{display:none}.map-toolbar-title{font-size:8px;gap:5px}.map-tool{height:29px;padding:0 7px}.map-tool span{display:none}.icon-btn{height:29px;width:28px}.map-tools{gap:4px}.canvas-stage{aspect-ratio:1200/720}.canvas-tip{white-space:normal;font-size:9px;top:6px;left:7px;right:7px;transform:none}.canvas-tip kbd{padding:2px}.canvas-caption{font-size:7px;bottom:5px;right:5px}.canvas-statusbar{font-size:9px;padding:9px}.statusbar-right i{display:none}.footer-desktop>span:nth-child(3),.footer-desktop i,.footer-desktop>span:nth-child(5){display:none}.touch-pad{display:block;margin:-3px 0 20px;padding:12px;background:#17293c;border:1px solid #2e4b5d;border-radius:10px}.pad-row{display:flex;justify-content:center;gap:5px;margin-bottom:5px}.pad-row:last-child{margin-bottom:0}.pad-row button{touch-action:none;width:54px;height:37px;border-radius:7px;background:#2b504e;color:#a5f4d9;border:1px solid #3c8474;display:grid;place-items:center}.pad-up svg{transform:rotate(-90deg)}.pad-left svg{transform:rotate(180deg)}.pad-down svg{transform:rotate(90deg)}.feature-grid{grid-template-columns:1fr 1fr}.feature-card:last-child{grid-column:span 2}.feature-card strong{font-size:18px}.presence-card{margin-top:4px}.person-list{grid-template-columns:1fr 1fr;gap:0 8px}.person-row{padding:9px 2px}.person-info strong{font-size:10px}.person-info span{font-size:9px}.distance-tag{display:none}.team-cards{grid-template-columns:1fr 1fr;gap:10px}.team-card{padding:13px;min-height:225px}.team-card h3{font-size:17px}.badge-avatar-big{width:49px;height:49px;flex-basis:49px;font-size:17px}.team-card-content{margin-top:15px}.team-card-bottom{font-size:8px}.sprint-stats{grid-template-columns:1fr;gap:8px}.sprint-stats>div{padding:12px}.sprint-stats strong{font-size:26px}.milestone-shell{padding:0 12px}.milestone{gap:8px}.milestone-text strong{font-size:10px}.milestone-text p{font-size:9px}.milestone-ico{display:none}.milestone-owner{display:none}.milestone-status{font-size:8px;min-width:85px;padding:7px 5px}.section-footer{gap:9px}.section-footer button{margin-left:0}.secondary-page h1{font-size:35px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+
+/* =============================================
+   V8 VISUAL UPDATE -- only workspace presentation.
+   Sidebar, Team directory, Day 01 report, roster,
+   movement hook, signaling and Canvas remain intact.
+   ============================================= */
+.visual-toggle{border:1px solid #659b91!important;background:#183f3db5!important;color:#a1ffe7!important;font-weight:800!important}
+.map-shell-cinematic{overflow:hidden;background:#07111c;border-color:#284651;box-shadow:0 20px 60px #020b15a6}
+.map-shell-cinematic .map-toolbar{border-bottom-color:#24434b;background:linear-gradient(90deg,#091825,#11252c)}
+.cinematic-stage{height:clamp(580px,72vh,860px)!important;aspect-ratio:auto!important;overflow:hidden;background:#07111d}
+.cinematic-scene{height:100%;width:100%;position:relative;overflow:hidden;isolation:isolate;background:#05121c}
+.cinematic-office-image{display:block;width:100%;height:100%;object-fit:cover;object-position:center 48%;user-select:none;pointer-events:none}
+.cinematic-topfade,.cinematic-bottomfade{position:absolute;pointer-events:none;left:0;right:0;z-index:1}
+.cinematic-topfade{top:0;height:100px;background:linear-gradient(180deg,#07131cd9,transparent)}
+.cinematic-bottomfade{bottom:0;height:190px;background:linear-gradient(0deg,#04111feb,transparent)}
+.cinematic-scene-badge{position:absolute;left:22px;top:17px;display:flex;align-items:center;gap:9px;z-index:2;border:1px solid #84f9df3d;background:#081923e3;color:#d9fff3;padding:9px 13px;border-radius:9px;font-size:9px;font-weight:800;letter-spacing:1.15px;backdrop-filter:blur(18px)}
+.cinematic-scene-badge .blinking-spot{width:7px;height:7px;border-radius:50%;background:#70ecd2;box-shadow:0 0 14px #4ffff0}
+.cinematic-demo-note{color:#84a7aa;font-weight:600}
+.cinematic-room-hit{position:absolute;z-index:3;transform:translate(-50%,-50%);border:2px solid transparent;border-radius:15px;background:transparent;color:transparent;min-width:95px;min-height:60px;transition:background .18s,border-color .18s;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px}
+.cinematic-room-hit span{opacity:0;transform:translateY(3px);transition:opacity .18s,transform .18s;display:inline-block;font-size:10px;letter-spacing:.4px;font-weight:800;border-radius:7px;padding:7px 9px;background:#061421e8;color:#c9fff1}
+.cinematic-room-hit:hover,.cinematic-room-hit:focus-visible,.cinematic-room-hit.scene-hit-active{border-color:#8ff9de7a;background:#82f9d710;color:#d6fff8}
+.cinematic-room-hit:hover span,.cinematic-room-hit:focus-visible span,.cinematic-room-hit.scene-hit-active span{opacity:1;transform:translateY(0)}
+.cinematic-room-message{position:absolute;left:50%;top:50%;z-index:5;transform:translate(-50%,-50%);width:min(350px,90%);padding:14px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;border:1px solid #7debd19c;background:#061724e8;backdrop-filter:blur(18px);border-radius:14px;box-shadow:0 15px 60px #000b;color:#ecfff7}
+.cinematic-room-message strong{font-size:13px}
+.cinematic-room-message>span:nth-child(3){color:#adcad1;font-size:11px;flex-basis:100%;padding-left:17px}
+.scene-message-light{height:8px;width:8px;flex:0 0 8px;border-radius:50%;background:#75f3d8}
+.cinematic-room-message button{border:1px solid #4eb2a47a;border-radius:7px;background:#133e3b;color:#d4fff4;font-size:11px;padding:7px 9px;display:flex;align-items:center;gap:4px}
+.cinematic-room-message button:last-child{margin-left:auto;padding:7px}
+.cinematic-bottom-controls{position:absolute;z-index:4;left:18px;bottom:20px;right:18px;display:flex;justify-content:space-between;gap:8px;align-items:flex-end}
+.cinematic-presence-pill{background:#061725e5;backdrop-filter:blur(15px);border:1px solid #3e6c78a8;border-radius:12px;padding:10px 13px;display:flex;align-items:center;gap:10px;box-shadow:0 12px 28px #0005}
+.cinematic-pin{color:#6ff3d2}
+.cinematic-presence-pill strong,.cinematic-presence-pill small{display:block}
+.cinematic-presence-pill strong{font-size:13px;color:#f6fffd}
+.cinematic-presence-pill small{margin-top:2px;color:#b1c5cd;font-size:10px}
+.cinematic-map-button{display:flex;align-items:center;gap:8px;background:linear-gradient(125deg,#61ead0,#b5ffe6);color:#072d2b;font-weight:900;font-size:11px;border-radius:9px;padding:12px 13px;box-shadow:0 5px 22px #50f5d445}
+.cinematic-map-button:hover{filter:brightness(1.11)}
+.cinematic-asset-credit{position:absolute;bottom:5px;left:20px;font-size:8px;color:#9fc5c4b5;z-index:3}
+@media (max-width:620px){.cinematic-stage{height:570px!important}.cinematic-demo-note{display:none}.cinematic-bottom-controls{left:9px;right:9px}.cinematic-map-button{font-size:0;gap:5px;padding:11px}.cinematic-map-button svg{width:17px}.cinematic-presence-pill{padding:8px 9px}.cinematic-presence-pill strong{font-size:11px}.cinematic-presence-pill small{font-size:9px}.cinematic-scene-badge{top:10px;left:10px;font-size:8px;padding:7px}.map-tool.visual-toggle span{display:inline;font-size:9px}.visual-toggle{max-width:100px}}
+@media(prefers-reduced-motion:reduce){.cinematic-room-hit,.cinematic-room-hit span{transition:none}}
+
+/* Room badges mask the reference image's illustrative room counts and show
+   live app data, rather than copying fake reference numbers. */
+.scene-data-label{position:absolute;display:flex;align-items:flex-start;gap:8px;z-index:4;background:#111121ef;border:1px solid #4b506bda;padding:10px 13px;border-radius:12px;min-width:110px;box-shadow:0 5px 19px #0009;pointer-events:none;backdrop-filter:blur(6px)}
+.scene-room-dot{height:10px;width:10px;border-radius:50%;flex:0 0 10px;margin-top:4px;background:#79ead8}
+.room-dot-ideation{background:#e992e3}.room-dot-studio{background:#b891f0}.room-dot-lounge{background:#f8ae80}
+.scene-data-label strong,.scene-data-label small{display:block;white-space:nowrap}
+.scene-data-label strong{color:#fff;font-size:12px}.scene-data-label small{font-size:10px;color:#c1c6d6;margin-top:3px}
+@media(max-width:620px){.scene-data-label{padding:6px 7px;min-width:unset;border-radius:7px;gap:4px}.scene-room-dot{height:6px;width:6px;flex-basis:6px;margin-top:3px}.scene-data-label strong{font-size:8px}.scene-data-label small{font-size:7px}}

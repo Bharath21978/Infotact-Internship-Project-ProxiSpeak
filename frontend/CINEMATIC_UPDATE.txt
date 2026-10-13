@@ -1,0 +1,8 @@
+Bharath — ee zip new V8 cinematic visuals. Nee original dashboard and names same ga unnayi.
+
+1. ZIP extract -> VS Code File > Open Folder -> frontend
+2. Terminal: npm.cmd install; npm.cmd test; npm.cmd run build; npm.cmd run dev
+3. Website lo Cinematic toggle default ON: reference office visual
+4. Movement map button: original avatar movement, radius, collision all working
+5. GitHub/Netlify ippudu update kaaledu. First browser lo check cheyyi.
+NOTE: Idi actual 3D kaadhu. Image-backed visual mode. Original movement map separate ga preserve ayyindi.
