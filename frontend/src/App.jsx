@@ -8,6 +8,7 @@ import {
   ShieldCheck, Signal, Sparkles, Terminal, Users, Volume2, WifiOff, X, Zap,
 } from 'lucide-react';
 import SpaceCanvas from './components/SpaceCanvas.jsx';
+import ThreeWorkspace from './components/ThreeWorkspace.jsx';
 import { useMovement } from './hooks/useMovement.js';
 import { distance, inRange } from './lib/movement.js';
 import { MY_PLAYER, PROXIMITY_RADIUS, SPACES, TEAM, WORLD, simulatedTeam } from './lib/world.js';
@@ -63,60 +64,29 @@ function TitleBar({ view, connection, onConnect, onMenu, onGuide }) {
   </header>;
 }
 
-function ControlStrip({ showRadius, setShowRadius, showTrail, setShowTrail, onReset, openGuide, onExpand, cinematic, setCinematic }) {
-  return <div className="map-toolbar"><div className="map-toolbar-title"><span className="map-on-air"><span/></span><span>{cinematic ? "CINEMATIC WORKSPACE" : "VIRTUAL FLOORPLAN"}</span><i/><span className="map-resolution">{cinematic ? "VISUAL REFERENCE MODE" : "1200 × 720 U"}</span></div><div className="map-tools"><button className={`map-tool visual-toggle ${cinematic ? "map-tool-active" : ""}`} onClick={() => setCinematic(v=>!v)} title={cinematic ? "Switch to movement map" : "Switch to cinematic office visual"} aria-pressed={cinematic}><Layers3 size={16}/><span>{cinematic ? "Movement map" : "Cinematic"}</span></button>
-    <button className={`map-tool ${showRadius ? 'map-tool-active' : ''}`} onClick={() => setShowRadius((s)=>!s)} title="Show/hide proximity radius" aria-pressed={showRadius}><Crosshair size={16}/><span>Radius</span></button>
-    <button className={`map-tool ${showTrail ? 'map-tool-active' : ''}`} onClick={() => setShowTrail((s)=>!s)} title="Show/hide walking trail" aria-pressed={showTrail}><Route size={16}/><span>Trail</span></button>
-    <span className="tool-split"/>
-    <button className="icon-btn" onClick={onReset} title="Reset Bharath avatar" aria-label="Reset avatar"><RefreshCcw size={16}/></button>
-    <button className="icon-btn" onClick={openGuide} title="Movement controls" aria-label="Movement guide"><Keyboard size={16}/></button>
-    <button className="icon-btn" onClick={onExpand} title="Fullscreen workspace" aria-label="Fullscreen workspace"><Maximize2 size={16}/></button>
-  </div></div>;
-}
-
-
-/**
- * A pixel-faithful, photograph-backed office VIEW, not an actual 3D simulation.
- * In movement mode we use the original Canvas, pathfinding and proximity system.
- * Reference art comes from the image supplied by the project owner and is
- * cropped to the OFFICE ONLY; project data is always sourced from world.js.
- */
-function CinematicScene({ switchToMap, onRoomSelect, connection, participants, localPosition }) {
-  const [active, setActive] = useState(null);
-  const rooms = [
-    { id: 'studio', label: 'Studio', x: '23%', y: '11%', w: '28%', h: '24%', style: {left:'16.7%',top:'3.6%'} },
-    { id: 'ideation', label: 'Ideation Lab', x: '75%', y: '17%', w: '26%', h: '27%', style: {left:'69.7%',top:'8.5%'} },
-    { id: 'lounge', label: 'Focus Lounge', x: '82%', y: '60%', w: '27%', h: '27%', style: {left:'78%',top:'60%'} },
-  ];
-  const countInRoom = (r) => {
-    const region = SPACES.find(s=>s.id===r.id);
-    if(!region) return 0;
-    const inside=p=>p.x>=region.x && p.x<=region.x+region.w && p.y>=region.y && p.y<=region.y+region.h;
-    return participants.filter(inside).length+(inside(localPosition)?1:0);
-  };
-  return <div className="cinematic-scene">
-    <img className="cinematic-office-image" src="/images/cinematic-office.webp" alt="Cinematic office artwork with glass-walled studio, ideation lab and focus lounge, desks, plants, sofas and purple and amber light. The artwork is a visual backdrop, not 3D geometry." draggable="false" />
-    <div className="cinematic-topfade" aria-hidden="true" />
-    <div className="cinematic-scene-badge"><span className="blinking-spot" /> OFFICE VISUAL PREVIEW <span className="cinematic-demo-note">· ARTWORK VIEW</span></div>
-    {rooms.map(room => <div className="scene-data-label" style={room.style} key={`${room.id}-label`}><span className={`scene-room-dot room-dot-${room.id}`} /><span><strong>{room.label}</strong><small>{countInRoom(room)} demo {countInRoom(room)===1?'avatar':'avatars'}</small></span></div>)}
-    {rooms.map(room => <button key={room.id} type="button" className={`cinematic-room-hit ${active === room.id ? 'scene-hit-active' : ''}`}
-       style={{ left: room.x, top: room.y, width: room.w, height: room.h }}
-       aria-label={`Inspect ${room.label}`} title={`Inspect ${room.label}`}
-       onClick={() => { setActive(room.id); onRoomSelect(room.id); }}>
-      <span>Explore {room.label}</span>
-    </button>)}
-    {active && <div className="cinematic-room-message" role="status"><span className="scene-message-light"/>
-      <strong>{rooms.find(r=>r.id===active)?.label}</strong><span>Selected · View movement on the live map</span>
-      <button onClick={switchToMap}>Go to map <ArrowRight size={14}/></button>
-      <button aria-label="Dismiss room detail" onClick={() => setActive(null)}><X size={13}/></button>
-    </div>}
-    <div className="cinematic-bottomfade" aria-hidden="true"/>
-    <div className="cinematic-bottom-controls">
-      <div className="cinematic-presence-pill"><span className="cinematic-pin"><MapPin size={15}/></span><span><strong>ProxiSpeak office</strong><small>{connection==='online'?'Connected to the signaling server':'Local preview · demo team'}</small></span></div>
-      <button className="cinematic-map-button" onClick={switchToMap}><Keyboard size={17}/> <span>Move your avatar</span> <ArrowUpRight size={15}/></button>
+function ControlStrip({ showRadius, setShowRadius, showTrail, setShowTrail, onReset, openGuide, onExpand, mode, setMode, roofVisible, setRoofVisible, focusRoom, setFocusRoom }) {
+  return <>
+    <div className="map-toolbar expanded-toolbar">
+      <div className="map-toolbar-title"><span className="map-on-air"><span/></span><span>{mode === '3d' ? 'IMMERSIVE 3D OFFICE' : 'CLASSIC MOVEMENT MAP'}</span><i/><span className="map-resolution">{mode === '3d' ? 'LIVE INTERACTIVE SCENE' : '1200 × 720 UNITS'}</span></div>
+      <div className="map-tools">
+        <button className="map-tool map-tool-active" onClick={() => setMode(mode === '3d' ? 'map':'3d')} title="Switch between 3D and movement map"><Layers3 size={16}/><span>{mode === '3d' ? '2D map' : '3D office'}</span></button>
+        <button className={`map-tool ${showRadius ? 'map-tool-active' : ''}`} onClick={() => setShowRadius(v=>!v)} aria-pressed={showRadius} title="Toggle proximity radius"><Crosshair size={16}/><span>Radius</span></button>
+        <button className={`map-tool ${showTrail ? 'map-tool-active' : ''}`} onClick={() => setShowTrail(v=>!v)} aria-pressed={showTrail} title="Toggle walking trail"><Route size={16}/><span>Trail</span></button>
+        {mode === '3d' && <button className={`map-tool ${roofVisible ? 'map-tool-active' : ''}`} onClick={() => setRoofVisible(v=>!v)} aria-pressed={roofVisible} title="Toggle glass roof"><Layers3 size={16}/><span>Roof</span></button>}
+        <span className="tool-split"/>
+        <button className="icon-btn" onClick={() => {onReset();setFocusRoom('all');}} title="Reset avatar and view" aria-label="Reset avatar and view"><RefreshCcw size={16}/></button>
+        <button className="icon-btn" onClick={openGuide} title="Movement controls" aria-label="Movement guide"><Keyboard size={16}/></button>
+        <button className="icon-btn" onClick={onExpand} title="Fullscreen workspace" aria-label="Fullscreen workspace"><Maximize2 size={16}/></button>
+      </div>
     </div>
-    <span className="cinematic-asset-credit">Office artwork view · Avatar motion is available in Movement map mode</span>
-  </div>;
+    {mode === '3d' && <div className="office-focus-bar" role="group" aria-label="Focus a virtual room">
+      <span className="focus-label"><CircleDot size={13}/> EXPLORE SPACE</span>
+      {[["all","Entire office"],["studio","Studio"],["ideation","Ideation Lab"],["lounge","Focus Lounge"]].map(([id,title])=><button key={id} type="button" aria-pressed={focusRoom === id} className={focusRoom === id ? 'is-focused':''} onClick={()=>setFocusRoom(id)}>{title}</button>)}
+      <span className="focus-spacer"/>
+      <button type="button" title="Zoom out" aria-label="Zoom out" className="focus-zoom" onClick={()=>document.dispatchEvent(new CustomEvent('proxi:zoom',{detail:-1}))}>−</button>
+      <button type="button" title="Zoom in" aria-label="Zoom in" className="focus-zoom" onClick={()=>document.dispatchEvent(new CustomEvent('proxi:zoom',{detail:1}))}>+</button>
+    </div>}
+  </>;
 }
 
 function ArrowPad({ hold }) {
@@ -153,58 +123,54 @@ function FeatureCard({ icon: Icon, value, title, note, accent = '' }) { return <
 
 function WorkspaceView({ movement, people, connection, setView, showRadius, setShowRadius, showTrail, setShowTrail, guide, onShare, notify, selected, setSelected, filter, setFilter }) {
   const frameRef = useRef(null);
-  const [cinematic, setCinematic] = useState(true);
-  const [showWelcome, setShowWelcome] = useState(true);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [mode,setMode] = useState('3d');
+  const [focusRoom,setFocusRoom] = useState('all');
+  const [roofVisible,setRoofVisible] = useState(false);
+  const [showWelcome,setShowWelcome] = useState(true);
+  const [reducedMotion,setReducedMotion] = useState(false);
   useEffect(()=>{
     const q=window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducedMotion(q.matches);
-    const cb=e=>setReducedMotion(e.matches);
-    q.addEventListener?.('change',cb);
-    return ()=>q.removeEventListener?.('change',cb);
+    setReducedMotion(q.matches);const cb=e=>setReducedMotion(e.matches);
+    q.addEventListener?.('change',cb);return()=>q.removeEventListener?.('change',cb);
   },[]);
   useEffect(()=>{
-    const handler=(e)=>{
-      const room=SPACES.find(r=>r.id===e.detail);
-      if (room) { movement.moveTo(room.spawn); notify(`Navigating to ${room.label}`); }
+    const handler=e=>{const room=SPACES.find(r=>r.id===e.detail);
+      if(room){setMode('3d');setFocusRoom(room.id);movement.moveTo(room.spawn);notify(`Exploring ${room.short}`);}
     };
     document.addEventListener('proxi:room',handler);
-    return ()=>document.removeEventListener('proxi:room',handler);
+    return()=>document.removeEventListener('proxi:room',handler);
   },[movement.moveTo,notify]);
-  const nearby = people.filter(p=>inRange(movement.position,p)).length;
-  const fullScreen = async()=>{
-    try { if(document.fullscreenElement) await document.exitFullscreen(); else await frameRef.current?.requestFullscreen(); }
-    catch { notify('Fullscreen unavailable in this browser.'); }
-  };
-  const mapClick = (point)=>{ if(!movement.moveTo(point)) notify('No navigable path to that position.'); else setShowWelcome(false); };
-  return <div className="page workspace-page">
-    <div className="hero-title"><div className="hero-copy"><div className="hero-overline"><span className="overline-diamond"/> PROXISPEAK / BUILDING THE FUTURE OF PRESENCE</div><h1>Your space to <span>move ideas.</span></h1><p>A virtual place to work, meet and connect. Movement is the first step.</p></div><div className="hero-side"><div className="hero-day"><span className="day-glow"/> DAY 01 / SIGNALING & MOVEMENT</div><small><CircleDot size={13}/> Frontend prototype · v1.1</small></div></div>
-    <div className="workspace-heading"><div><div className="sub-eyebrow">CINEMATIC WORKSPACE / MOVEMENT MAP</div><h2>Spatial workspace <Pill variant="beta-pill">DAY 01</Pill></h2></div><div className="avatar-stack">{[MY_PLAYER,...TEAM].map(p=><span key={p.id} title={p.name} style={{background:p.color}}>{p.initials}</span>)}<b>{people.length+1} in view</b></div></div>
+  const nearby=people.filter(p=>inRange(movement.position,p)).length;
+  const fullScreen=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await frameRef.current?.requestFullscreen();}catch{notify('Fullscreen unavailable in this browser.')}};
+  const mapClick=point=>{if(!movement.moveTo(point))notify('No navigable path to that position.');else setShowWelcome(false);};
+  return <div className="page workspace-page expanded-3d-page">
+    <div className="hero-title"><div className="hero-copy"><div className="hero-overline"><span className="overline-diamond"/> PROXISPEAK / BUILDING THE FUTURE OF PRESENCE</div><h1>Your space to <span>move ideas.</span></h1><p>An expansive office for your team. Explore rooms, move your avatar and discover who's nearby.</p></div><div className="hero-side"><div className="hero-day"><span className="day-glow"/> DAY 02 / SPATIAL WORKSPACE UPGRADE</div><small><CircleDot size={13}/> Interactive 3D demonstration · local mode</small></div></div>
+    <div className="workspace-heading"><div><div className="sub-eyebrow">EXPANDED OFFICE / FULL SCENE</div><h2>Spatial workspace <Pill variant="beta-pill">3D PREVIEW</Pill></h2></div><div className="avatar-stack">{[MY_PLAYER,...TEAM].map(p=><span key={p.id} title={p.name} style={{background:p.color}}>{p.initials}</span>)}<b>{people.length+1} avatars</b></div></div>
     <div className="workspace-grid"><div className="workspace-main">
-      <div className={`map-shell ${cinematic ? 'map-shell-cinematic' : ''}`} ref={frameRef}>
-        <ControlStrip cinematic={cinematic} setCinematic={setCinematic} showRadius={showRadius} setShowRadius={setShowRadius} showTrail={showTrail} setShowTrail={setShowTrail} onReset={movement.reset} openGuide={guide} onExpand={fullScreen}/>
-        <div className={`canvas-stage ${cinematic ? 'cinematic-stage' : ''}`}>
-          {cinematic ? <CinematicScene switchToMap={() => setCinematic(false)} connection={connection} participants={people} localPosition={movement.position} onRoomSelect={(roomId) => {
-            const room=SPACES.find(r=>r.id===roomId);
-            if(room) movement.moveTo(room.spawn);
-          }}/> : <>
+      <div className="map-shell map-shell-3d" ref={frameRef}>
+        <ControlStrip mode={mode} setMode={setMode} focusRoom={focusRoom} setFocusRoom={setFocusRoom} roofVisible={roofVisible} setRoofVisible={setRoofVisible} showRadius={showRadius} setShowRadius={setShowRadius} showTrail={showTrail} setShowTrail={setShowTrail} onReset={movement.reset} openGuide={guide} onExpand={fullScreen}/>
+        <div className={`canvas-stage ${mode === '3d' ? 'stage-three-expanded' : ''}`}>
+          {mode === '3d' ? <>
+            <ThreeWorkspace positionRef={movement.positionRef} participants={people} radius={PROXIMITY_RADIUS} showRadius={showRadius} showTrail={showTrail} roofVisible={roofVisible} focusRoom={focusRoom} selectedId={selected} onFloorClick={mapClick} onSelectMember={id=>setSelected(id)} quality="high"/>
+            <div className="three-scene-note"><span className="blinking-spot"/> ORIGINAL INTERACTIVE 3D · DEMO POSITIONS</div>
+            {showWelcome && <div className="three-quicktip">Drag to rotate · Scroll to zoom · WASD to walk <button aria-label="Dismiss tip" onClick={()=>setShowWelcome(false)}><X size={14}/></button></div>}
+          </> : <>
             <SpaceCanvas positionRef={movement.positionRef} trailRef={movement.trailRef} waypointsRef={movement.waypointsRef} participants={people} showRadius={showRadius} showTrail={showTrail} onMapClick={mapClick} focusedId={selected} reducedMotion={reducedMotion}/>
-            {showWelcome && <div className="canvas-tip"><span><MousePointer2 size={16}/></span>Click the map or use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move <button onClick={()=>setShowWelcome(false)} aria-label="Dismiss movement tip"><X size={15}/></button></div>}
-            <span className="canvas-caption"><span/> {connection === 'online' ? 'SERVER POSITIONS' : 'SIMULATED PLAYERS · LOCAL DEMO'}</span>
+            <span className="canvas-caption"><span/> ORIGINAL NAVIGATION MAP · LOCAL DEMO</span>
           </>}
         </div>
-        <div className="canvas-statusbar"><div><MapPin size={15}/><strong>X {Math.round(movement.position.x)}</strong><span>/</span><strong>Y {Math.round(movement.position.y)}</strong></div><div className="statusbar-right"><span className={`walking-dot ${movement.movement !== 'Idle' ? 'walking-active' : ''}`}/>{movement.movement}<i/>WORLD UNITS (U)</div></div>
+        <div className="canvas-statusbar"><div><MapPin size={15}/><strong>X {Math.round(movement.position.x)}</strong><span>/</span><strong>Y {Math.round(movement.position.y)}</strong></div><div className="statusbar-right"><span className={`walking-dot ${movement.movement !== 'Idle' ? 'walking-active' : ''}`}/>{movement.movement}<i/>WASD · DRAG CAMERA · SCROLL ZOOM</div></div>
       </div>
-      <div className="movement-footer"><div className="footer-desktop"><span className="footer-foot-icon"><Keyboard size={17}/></span><b>Movement controls</b><span>WASD / ↑ ↓ ← →</span><i/> <span>Click-to-navigate</span></div><button onClick={guide}>How it works <ArrowUpRight size={14}/></button></div>
+      <div className="movement-footer"><div className="footer-desktop"><span className="footer-foot-icon"><Keyboard size={17}/></span><b>Controls</b><span>WASD / arrow keys · Drag to orbit · Scroll to zoom</span></div><button onClick={guide}>How it works <ArrowUpRight size={14}/></button></div>
       <ArrowPad hold={movement.hold}/>
       <div className="feature-grid">
         <FeatureCard icon={Route} value={Math.round(movement.metersTravelled).toLocaleString()} title="World units travelled" note="Tracked in this session" accent="mint-card"/>
         <FeatureCard icon={Crosshair} value={`${nearby} / ${people.length}`} title="Participants nearby" note={`${PROXIMITY_RADIUS}u proximity radius`} accent="violet-card"/>
-        <FeatureCard icon={Cpu} value="60 FPS" title="Rendering target" note="Canvas / requestAnimationFrame" accent="orange-card"/>
+        <FeatureCard icon={Cpu} value="3D" title="Rendering engine" note="Three.js / WebGL with fallback" accent="orange-card"/>
       </div>
     </div>
     <PresencePanel people={people} position={movement.position} connection={connection} selected={selected} setSelected={setSelected} filter={filter} setFilter={setFilter} onShare={onShare}/></div>
-    <div className="section-footer"><span><ShieldCheck size={15}/> Demo uses no microphone or camera access.</span><span><Zap size={15}/> Collision-aware movement + A* navigation</span><button onClick={()=>setView('sprint')}>View development report <ArrowUpRight size={14}/></button></div>
+    <div className="section-footer"><span><ShieldCheck size={15}/> No microphone or camera permission in this demo.</span><span><Zap size={15}/> Collision-aware movement and pathfinding</span><button onClick={()=>setView('sprint')}>View development report <ArrowUpRight size={14}/></button></div>
   </div>;
 }
 

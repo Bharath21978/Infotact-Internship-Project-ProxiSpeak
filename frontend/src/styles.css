@@ -53,3 +53,41 @@
 .scene-data-label strong,.scene-data-label small{display:block;white-space:nowrap}
 .scene-data-label strong{color:#fff;font-size:12px}.scene-data-label small{font-size:10px;color:#c1c6d6;margin-top:3px}
 @media(max-width:620px){.scene-data-label{padding:6px 7px;min-width:unset;border-radius:7px;gap:4px}.scene-room-dot{height:6px;width:6px;flex-basis:6px;margin-top:3px}.scene-data-label strong{font-size:8px}.scene-data-label small{font-size:7px}}
+
+
+/* Day 2 — Immersive office: show genuine 3D scene immediately, not the image-backed V8 mode. */
+.expanded-3d-page{max-width:1800px;padding-top:20px}
+.expanded-3d-page .hero-title{margin-bottom:21px}
+.expanded-3d-page .workspace-heading{margin-bottom:13px}
+.expanded-3d-page .workspace-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
+.expanded-3d-page .workspace-main{width:100%;min-width:0}
+.map-shell-3d{border-color:#2b5769;background:#061321;box-shadow:0 25px 65px #01071088}
+.map-shell-3d .map-toolbar{background:linear-gradient(90deg,#0c2431,#0d2132);border-bottom-color:#2d5262}
+.map-shell-3d .canvas-stage.stage-three-expanded{position:relative;display:block;aspect-ratio:auto!important;height:clamp(600px,78vh,940px)!important;background:#081725;overflow:hidden}
+.map-shell-3d:fullscreen .canvas-stage.stage-three-expanded{flex:1;height:auto!important;min-height:0!important}
+.expanded-3d-page .presence-card{width:100%;max-width:none}
+.expanded-3d-page .presence-intro{max-width:none}
+.expanded-3d-page .person-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 14px}
+.expanded-3d-page .feature-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.office-focus-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-height:50px;padding:9px 17px;background:#0c1b2d;border-bottom:1px solid #294252}
+.office-focus-bar .focus-label{font-size:9px;font-weight:800;letter-spacing:1.4px;color:#77cfbe;display:flex;align-items:center;gap:8px;margin-right:8px}
+.office-focus-bar button{border:1px solid #2b4e60;background:#122b3d;color:#a9c1ce;font-size:11px;font-weight:750;padding:8px 13px;border-radius:9px;min-height:33px}
+.office-focus-bar button.is-focused{background:#225e5d;color:#d0fff5;border-color:#5bbaab;box-shadow:inset 0 1px #ffffff1a}
+.office-focus-bar button:hover{border-color:#77d7cc;color:white}
+.office-focus-bar .focus-spacer{flex:1}
+.office-focus-bar .focus-zoom{width:34px;display:grid;place-items:center;font-size:19px;padding:5px}
+.three-stage{position:absolute;inset:0;overflow:hidden;isolation:isolate}
+.three-stage canvas{position:absolute;inset:0;display:block;width:100%;height:100%;z-index:0;touch-action:none}
+.cinematic-room-tag{position:absolute;display:flex;align-items:center;gap:9px;z-index:2;transform:translate(-50%,-50%);pointer-events:none;padding:10px 14px;min-width:120px;background:#091625e8;border:1px solid #e5fff433;border-radius:11px;box-shadow:0 12px 34px #0009;backdrop-filter:blur(15px);white-space:nowrap}
+.cinematic-room-tag i{height:10px;width:10px;border-radius:4px;flex:none;background:#b08af7;box-shadow:0 0 15px #bd8effac}
+.cinematic-room-tag strong{display:block;font-size:13px;color:#fff;line-height:1.1;font-weight:800}
+.cinematic-room-tag small{display:block;margin-top:4px;font-size:8px;color:#c6cbe2;letter-spacing:1.15px;font-weight:800}
+.cinematic-room-tag.ideation-tag i{background:#ff8acc;box-shadow:0 0 15px #ff8accae}
+.cinematic-room-tag.lounge-tag i{background:#ffb176;box-shadow:0 0 15px #ffb176ae}
+.three-scene-note{position:absolute;left:17px;top:17px;display:flex;gap:9px;align-items:center;font-size:9px;color:#b9f2e4;letter-spacing:1px;font-weight:800;background:#0a1c2ddb;border:1px solid #3a756c;padding:10px 14px;border-radius:10px;pointer-events:none;backdrop-filter:blur(15px)}
+.three-quicktip{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:11px;padding:10px 15px;background:#081a2ce9;border:1px solid #3a5769;color:#d3ecf0;border-radius:9px;font-size:11px;white-space:nowrap;box-shadow:0 15px 35px #0008}
+.three-quicktip button{color:#b4d8dc;background:transparent;display:grid;place-items:center;padding:2px}
+.fallback-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:3;touch-action:none}
+.fallback-warning{position:absolute;z-index:8;bottom:83px;left:50%;transform:translateX(-50%);max-width:90%;background:#594127eb;border:1px solid #ae8555;color:#ffe8b3;font-size:10px;padding:9px 13px;border-radius:7px;text-align:center}
+@media(max-width:1200px){.expanded-3d-page .person-list{grid-template-columns:repeat(2,minmax(0,1fr))}.map-shell-3d .canvas-stage.stage-three-expanded{height:690px!important}}
+@media(max-width:620px){.expanded-3d-page{padding:16px 11px}.map-shell-3d .canvas-stage.stage-three-expanded{height:560px!important}.office-focus-bar{padding:8px;gap:5px}.office-focus-bar .focus-label{width:100%;margin-bottom:2px}.office-focus-bar button{padding:7px 9px;font-size:9px}.three-scene-note{font-size:7px;left:8px;top:8px;max-width:90%;padding:7px}.cinematic-room-tag{padding:6px;min-width:0}.cinematic-room-tag strong{font-size:9px}.cinematic-room-tag small{font-size:6px}.three-quicktip{font-size:9px;padding:8px;bottom:10px;max-width:95%;white-space:normal}.expanded-3d-page .person-list{grid-template-columns:1fr 1fr}.expanded-3d-page .feature-grid{grid-template-columns:1fr 1fr}}

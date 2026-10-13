@@ -1,17 +1,21 @@
-# ProxiSpeak — Cinematic Office Visuals (V8)
+# ProxiSpeak — Day 2 Expanded 3D Office
 
-**Frontend from Bharath's original Day 01 Elite project, with dashboard and team data retained.**
+A source-code update to Bharath's existing Infotact ProxiSpeak React frontend. **The office opens in a real Three.js 3D scene by default**. The original dashboard navigation, names, team directory, movement map, avatar movement model, proximity calculations, and Day 01 report remain available.
 
-## What changed
-- The **workspace-only visual mode** now displays the supplied cinematic office artwork, cropped to the office area (the source image's left/right UI is excluded).
-- The **existing sidebar, team directory, Day 01 report, status panel, GitHub signaling integration prep, and four original team member names** come from the original React application.
-- The **Cinematic** toggle in the workspace toolbar switches between this architectural **photo-backed visual mode** and the previous **fully interactive 2D movement map**.
-- The picture is not 3D, and furniture/avatars baked into it do not move. **Real keyboard movement, collision detection, pathfinding, and proximity radius visualization remain functional in Movement map mode.**
-- Room hover/click hotspots let you select the Studio, Ideation Lab, and Focus Lounge in the cinematic view; switch to Map to see navigation.
-- This site does not claim live presence or voice calling. Online sync still requires Jeevith's backend.
+## Changes in this version
 
-## Windows / VS Code
-Open the `frontend` folder in VS Code, then run:
+- **3D first paint:** no static reference photograph and no cinematic-background mode. Three.js generates architecture and furniture using genuine geometry.
+- **Much larger workspace display:** the office takes the full dashboard content width and is 600–940px tall on desktops. The team directory is below the workspace instead of constraining its width.
+- **Room-focused view:** Entire office, Studio, Ideation Lab, and Focus Lounge buttons smoothly refocus and zoom the camera without reinitializing the scene.
+- **Camera:** drag to orbit; scroll or +/- buttons to zoom; fullscreen available. Roof transparency toggle.
+- **Avatars:** WASD/arrow movement, demo teammate positions, moving proximity halo, trail, click-to-move with existing A* / collision logic.
+- **Fallback:** if WebGL initialization fails, an interactive fallback Canvas renders and a warning appears.
+- **No backend or voice claims:** users are simulated when the Socket.IO server is not connected; audio requires a later team integration.
+
+## Local run (Windows, PowerShell)
+
+1. Extract ZIP and open the **frontend** folder in VS Code.
+2. In the VS Code terminal:
 
 ```powershell
 npm.cmd install
@@ -20,15 +24,21 @@ npm.cmd run build
 npm.cmd run dev
 ```
 
-Use the link Vite prints to view the site. Press **Cinematic / Movement map** to toggle workspace modes.
+3. Open the **Local:** URL printed by Vite (normally `http://localhost:5173`). Do not assume the `192.168.x.x` address is accessible outside your local network.
+4. Test Entire office, Studio, Ideation Lab and Focus Lounge, the camera drag, WASD, Radius toggle, roof toggle and 2D map fallback.
 
-## Updating GitHub / Netlify
-1. Run and verify this copy locally **before** replacing your current GitHub `frontend` folder.
-2. Back up the current committed version.
-3. Copy only the verified new `frontend` into your existing local clone of `Infotact-Internship-Project-ProxiSpeak`.
-4. Run `npm.cmd test` and `npm.cmd run build` within that cloned `frontend`, then `git add frontend`, `git commit -m "Improve workspace cinematic visuals with original dashboard"`, `git push origin main` from repository root.
-5. Redeploy the resulting `frontend/dist` folder to the **existing** Netlify project (do not create a new site), if desired.
-6. Infotact Project Progress should keep tracking your existing linked `main` branch; check after refreshing.
+## Keeping Git history
 
-## Source details / honesty
-The reference image was uploaded by the user and is embedded as a static scene artwork at `public/images/cinematic-office.webp`. The central scene artwork includes illustrated people; the **room badges are DOM overlays with counts computed from the original team model**. The text inside illustrated avatar labels in the source artwork remains static. Actual application names and roster come from `src/lib/world.js`. If you need the scene artwork to have no baked-in avatars/text, a newly rendered/cleaned background asset would be required.
+**Do not delete/recreate the repository or force-push.** Copy the contents of this `frontend` folder over the `frontend` folder in the existing clone (keep `.git` at the repository root), validate locally, and create an ordinary Day 2 commit:
+
+```powershell
+git add frontend
+git commit -m "Day 2: Expand interactive 3D office and room-focused navigation"
+git push origin main
+```
+
+The pushed files become the GitHub source for the existing Infotact Project Progress connection. **Netlify does not update automatically** when the original site was deployed using Netlify Drop: run `npm.cmd run build` and redeploy the new `frontend/dist` into the same Netlify project. Verify the live URL manually. Do not claim the Infotact dashboard or Netlify site changed until that action is done.
+
+## Testing boundaries
+
+The included Node unit tests cover movement, collision/pathfinding, and signaling protocol. They do not prove the browser's WebGL rendering works. Browser testing is required before submission. `npm.cmd install` must obtain Three.js from npm because this project intentionally does not vendor library bundles.
