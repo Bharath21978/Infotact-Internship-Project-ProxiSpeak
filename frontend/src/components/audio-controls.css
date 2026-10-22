@@ -1,0 +1,24 @@
+.audio-ui-panel{border:1px solid #29475c;border-radius:16px;padding:20px 22px;margin:16px 0 20px;background:linear-gradient(130deg,#0b2632,#111e32 70%,#18263b);box-shadow:0 18px 36px #0003;color:#e6f6fa}
+.audio-ui-heading,.audio-ui-title,.audio-ui-actions{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.audio-ui-heading{justify-content:space-between;margin-bottom:18px}
+.audio-ui-title-icon{width:40px;height:40px;display:grid;place-items:center;background:#1d504e;color:#95ffe3;border-radius:12px}
+.audio-ui-title strong,.audio-ui-title small{display:block}
+.audio-ui-title strong{font-size:15px;font-weight:800;letter-spacing:.2px}
+.audio-ui-title small{font-size:11px;color:#94afc1;margin-top:4px}
+.audio-ui-coming{display:inline-flex;align-items:center;gap:6px;border:1px solid #4c586c;background:#1c293d;color:#c4cbdc;border-radius:99px;padding:8px 11px;font-size:10px;font-weight:800;letter-spacing:.5px}
+.audio-ui-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:17px}
+.audio-ui-cell{background:#091b2bbf;border:1px solid #315168;border-radius:11px;padding:13px 14px;min-width:0}
+.audio-ui-cell small,.audio-ui-cell strong,.audio-ui-cell span{display:block}
+.audio-ui-cell small{font-size:9px;font-weight:800;color:#8bb3c0;letter-spacing:1.1px}
+.audio-ui-cell strong{font-size:15px;margin-top:7px;color:#f4fdfb}
+.audio-ui-cell strong.audio-ui-online{color:#8bffda}
+.audio-ui-cell span{display:flex;gap:4px;align-items:center;flex-wrap:wrap;font-size:10px;color:#9eb4c1;line-height:1.5;margin-top:6px}
+.audio-ui-primary,.audio-ui-secondary{border:1px solid transparent;border-radius:10px;min-height:40px;padding:10px 15px;font-size:12px;font-weight:800;display:flex;align-items:center;gap:8px;justify-content:center}
+.audio-ui-primary{background:#82f1d3;color:#062b2b}
+.audio-ui-primary:disabled{opacity:.55;cursor:wait}
+.audio-ui-secondary{background:#243549;color:#e1eafa;border-color:#547084}
+.audio-ui-disclaimer{display:flex;align-items:center;gap:6px;flex:1 1 240px;margin:0;color:#a8becb;font-size:10px;line-height:1.6}
+.audio-ui-disclaimer svg{flex:none}
+.audio-ui-error{background:#582833;border:1px solid #a85b67;border-radius:9px;padding:10px 12px;color:#ffced3;font-size:11px;margin:13px 0 0}
+@media(max-width:1020px){.audio-ui-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.audio-ui-panel{padding:15px}.audio-ui-grid{grid-template-columns:1fr}.audio-ui-coming{font-size:9px}.audio-ui-title strong{font-size:14px}}

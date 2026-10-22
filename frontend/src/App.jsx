@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, AudioLines, BookOpen, Check,
   CheckCheck, ChevronDown, ChevronRight, CircleDot, Code2, Compass, Copy, Cpu,
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import SpaceCanvas from './components/SpaceCanvas.jsx';
 import ThreeWorkspace from './components/ThreeWorkspace.jsx';
+import AudioControlPanel from './components/AudioControlPanel.jsx';
 import { useMovement } from './hooks/useMovement.js';
 import { distance, inRange } from './lib/movement.js';
 import { MY_PLAYER, PROXIMITY_RADIUS, SPACES, TEAM, WORLD, simulatedTeam } from './lib/world.js';
@@ -162,6 +163,7 @@ function WorkspaceView({ movement, people, connection, setView, showRadius, setS
         <div className="canvas-statusbar"><div><MapPin size={15}/><strong>X {Math.round(movement.position.x)}</strong><span>/</span><strong>Y {Math.round(movement.position.y)}</strong></div><div className="statusbar-right"><span className={`walking-dot ${movement.movement !== 'Idle' ? 'walking-active' : ''}`}/>{movement.movement}<i/>WASD · DRAG CAMERA · SCROLL ZOOM</div></div>
       </div>
       <div className="movement-footer"><div className="footer-desktop"><span className="footer-foot-icon"><Keyboard size={17}/></span><b>Controls</b><span>WASD / arrow keys · Drag to orbit · Scroll to zoom</span></div><button onClick={guide}>How it works <ArrowUpRight size={14}/></button></div>
+      <AudioControlPanel position={movement.position} people={people} connection={connection}/>
       <ArrowPad hold={movement.hold}/>
       <div className="feature-grid">
         <FeatureCard icon={Route} value={Math.round(movement.metersTravelled).toLocaleString()} title="World units travelled" note="Tracked in this session" accent="mint-card"/>
