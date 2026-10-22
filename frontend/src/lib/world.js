@@ -10,6 +10,20 @@ export const SPACES = Object.freeze([
   { id: 'ideation', label: 'Ideation Lab', short: 'Ideation', x: 799, y: 44, w: 356, h: 286, color: '#b9a7ff', spawn: { x: 866, y: 270 } },
   { id: 'lounge', label: 'Focus Lounge', short: 'Lounge', x: 799, y: 353, w: 356, h: 320, color: '#f5b985', spawn: { x: 865, y: 558 } },
 ]);
+export function getRoomIdAtPosition(x, y) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return null;
+  }
+
+  const room = SPACES.find((space) =>
+    x >= space.x &&
+    x < space.x + space.w &&
+    y >= space.y &&
+    y < space.y + space.h
+  );
+
+  return room?.id ?? null;
+}
 
 /** Solid objects. Every render and movement collision reads this same model. */
 export const FURNITURE = Object.freeze([
