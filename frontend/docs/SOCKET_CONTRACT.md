@@ -16,6 +16,8 @@ Default URL: `http://localhost:4000`. Edit `VITE_SOCKET_URL` in a local `.env` f
 {"roomId":"main","id":"bharath-unique","x":320,"y":392}
 ```
 
+`player:leave` (optional): frontend emits this event with no payload when the user manually disconnects. Jeevith's backend listens for it, and also removes the player automatically on Socket.IO `disconnect`. A browser tab closing may rely on the latter.
+
 ## Receive from server
 
 `players:update`: full array of other currently connected players. Example:
@@ -25,7 +27,7 @@ Default URL: `http://localhost:4000`. Edit `VITE_SOCKET_URL` in a local `.env` f
 ]
 ```
 
-Optional `player:left`: `{ "id": "jeevith-1" }`.
+Current backend does **not** emit `player:left`. It emits a refreshed `players:update` after `player:leave` and Socket.IO disconnect, removing the departed player from the array. The frontend optionally supports `player:left` as a legacy notification if another server implementation provides it.
 
 ## Security / correctness agreement
 

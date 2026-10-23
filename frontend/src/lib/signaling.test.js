@@ -6,6 +6,8 @@ test('socket event names are explicit and stable', () => {
   assert.equal(EVENTS.join,'player:join');
   assert.equal(EVENTS.move,'player:move');
   assert.equal(EVENTS.update,'players:update');
+  assert.equal(EVENTS.leave,'player:leave'); // client-initiated leave
+  assert.equal(EVENTS.left,'player:left'); // optional server notification
 });
 test('invalid coordinates and self are excluded', () => {
   const players=parsePlayers([

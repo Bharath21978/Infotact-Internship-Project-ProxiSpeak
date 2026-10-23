@@ -1,7 +1,13 @@
 import { WORLD } from './world.js';
 
-/** Proposed socket event names; confirm them with Jeevith. */
-export const EVENTS = Object.freeze({ join: 'player:join', move: 'player:move', update: 'players:update', leave: 'player:left' });
+/** Match Jeevith's backend input events; player:left remains an optional broadcast alias. */
+export const EVENTS = Object.freeze({
+  join: 'player:join',
+  move: 'player:move',
+  update: 'players:update',
+  leave: 'player:leave',  // client -> server; optional before disconnect
+  left: 'player:left',   // optional server -> client; current server uses players:update
+});
 
 /** Pure validated parser: testable with Node without a Socket.IO server. */
 export function parsePlayers(payload, selfId) {

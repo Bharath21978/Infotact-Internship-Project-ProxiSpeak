@@ -234,6 +234,8 @@ export default function App() {
     window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);
   },[]);
   const disconnect=()=>{
+    // Explicit leave is optional; backend also broadcasts an updated list on disconnect.
+    if(socket.current?.connected)socket.current.emit(EVENTS.leave);
     socket.current?.disconnect();socket.current=null;setConnection('demo');setLivePeople([]);notify('Disconnected. Back in local demo mode.');
   };
   const toggleBackend=()=>{
@@ -247,7 +249,7 @@ export default function App() {
       notify('Connected. Awaiting backend participant updates.');
     });
     s.on(EVENTS.update,(players)=>{if(socket.current===s)setLivePeople(parsePlayers(players,sessionId.current));});
-    s.on(EVENTS.leave,({id}={})=>{if(typeof id==='string')setLivePeople(prev=>prev.filter(p=>p.id!==id));});
+    s.on(EVENTS.left,({id}={})=>{if(typeof id==='string')setLivePeople(prev=>prev.filter(p=>p.id!==id));});
     s.on('connect_error',()=>{
       if(socket.current===s){s.disconnect();socket.current=null;setConnection('demo');setLivePeople([]);notify('Backend unavailable — local demo still works.');}
     });
