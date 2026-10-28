@@ -24,3 +24,71 @@ test('positions outside all rooms are not audio-eligible', () => {
   assert.equal(p.roomId, null);
   assert.equal(p.nearbyPeers.length, 0);
 });
+// TEST 4: Ideation Lab allows everyone in the same room
+test('Ideation Lab supports room-wide audio eligibility', () => {
+  const preview = getAudioZonePreview(
+    { x: 810, y: 60 },
+    [{ id: 'far-user', x: 1140, y: 300 }]
+  );
+
+  assert.equal(preview.roomId, 'ideation');
+  assert.equal(preview.nearbyPeers.length, 1);
+  assert.equal(preview.radius, null);
+});
+
+// TEST 5: Focus Lounge allows everyone in the same room
+test('Focus Lounge supports room-wide audio eligibility', () => {
+  const preview = getAudioZonePreview(
+    { x: 810, y: 360 },
+    [{ id: 'far-user', x: 1140, y: 650 }]
+  );
+
+  assert.equal(preview.roomId, 'lounge');
+  assert.equal(preview.nearbyPeers.length, 1);
+  assert.equal(preview.radius, null);
+});
+
+// TEST 6: Participants from different rooms are excluded
+test('Audio eligibility is isolated between rooms', () => {
+  const preview = getAudioZonePreview(
+    { x: 810, y: 100 },
+    [
+      { id: 'studio-user', x: 760, y: 100 },
+      { id: 'lounge-user', x: 900, y: 500 },
+      { id: 'ideation-user', x: 900, y: 100 },
+    ]
+  );
+
+  assert.deepEqual(
+    preview.nearbyPeers.map(peer => peer.id),
+    ['ideation-user']
+  );
+});
+
+// TEST 7: Room transitions update eligible participants
+test('Room transitions update audio eligibility', () => {
+  const peers = [
+    { id: 'ideation-user', x: 900, y: 100 },
+    { id: 'lounge-user', x: 900, y: 500 },
+  ];
+
+  const before = getAudioZonePreview(
+    { x: 810, y: 100 },
+    peers
+  );
+
+  const after = getAudioZonePreview(
+    { x: 810, y: 500 },
+    peers
+  );
+
+  assert.deepEqual(
+    before.nearbyPeers.map(peer => peer.id),
+    ['ideation-user']
+  );
+
+  assert.deepEqual(
+    after.nearbyPeers.map(peer => peer.id),
+    ['lounge-user']
+  );
+});
