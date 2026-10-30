@@ -4,11 +4,11 @@ import { getAudioZonePreview } from '../lib/audioZones.js';
 import './audio-controls.css';
 
 /**
- * Local microphone preparation controls. This component deliberately has NO
- * Socket.IO or RTCPeerConnection side effects. It does not transmit audio.
- * The team lead can later attach the agreed room-aware audio engine.
+ * Keeps the existing microphone UI and owns the microphone tracks. The
+ * parent App receives the MediaStream and attaches it to the WebRTC engine.
+ * Stopping this component's microphone also stops the parent audio engine.
  */
-export default function AudioControlPanel({ position, people, connection }) {
+export default function AudioControlPanel({ position, people, connection, onStreamReady, onStreamStopped }) {
   const [micStatus, setMicStatus] = useState('off'); // off | requesting | ready | muted | error
   const [permission, setPermission] = useState('Not requested');
   const [error, setError] = useState('');
@@ -24,21 +24,25 @@ export default function AudioControlPanel({ position, people, connection }) {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
+      onStreamStopped?.();
     }
     trackRef.current = null;
     if (mountedRef.current) setMicStatus('off');
-  }, []);
+  }, [onStreamStopped]);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       requestId.current += 1;
-      streamRef.current?.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+        onStreamStopped?.();
+      }
       trackRef.current = null;
     };
-  }, []);
+  }, [onStreamStopped]);
 
   const enableMicrophone = async () => {
     if (micStatus === 'requesting' || streamRef.current) return;
@@ -69,6 +73,7 @@ export default function AudioControlPanel({ position, people, connection }) {
         if (trackRef.current !== track) return;
         streamRef.current = null;
         trackRef.current = null;
+        onStreamStopped?.();
         if (mountedRef.current) {
           setMicStatus('off');
           setPermission('Microphone stopped');
@@ -78,8 +83,15 @@ export default function AudioControlPanel({ position, people, connection }) {
       trackRef.current = track;
       setPermission('Allowed');
       setMicStatus('ready');
+      onStreamReady?.(stream);
     } catch (err) {
       if (!mountedRef.current || id !== requestId.current) return;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+        trackRef.current = null;
+        onStreamStopped?.();
+      }
       const rejected = err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError';
       setPermission(rejected ? 'Denied' : 'Unavailable');
       setError(rejected ? 'Permission denied. Enable microphone access in browser settings to retry.' : (err?.message || 'Could not access microphone.'));
@@ -95,12 +107,12 @@ export default function AudioControlPanel({ position, people, connection }) {
   };
 
   const active = micStatus === 'ready' || micStatus === 'muted';
-  const micLabel = micStatus === 'ready' ? 'Mic active locally' : micStatus === 'muted' ? 'Muted' : micStatus === 'requesting' ? 'Requesting permission' : 'Mic off';
+  const micLabel = micStatus === 'ready' ? (backendOnline ? 'Mic on · WebRTC ready' : 'Mic on · waiting for backend') : micStatus === 'muted' ? 'Muted' : micStatus === 'requesting' ? 'Requesting permission' : 'Mic off';
 
   return <section className="audio-ui-panel" aria-label="Audio readiness controls">
     <div className="audio-ui-heading">
-      <div className="audio-ui-title"><span className="audio-ui-title-icon"><Headphones size={20}/></span><div><strong>Audio readiness</strong><small>Microphone & room preview · not a voice call</small></div></div>
-      <span className="audio-ui-coming"><VolumeX size={13}/> Voice engine pending</span>
+      <div className="audio-ui-title"><span className="audio-ui-title-icon"><Headphones size={20}/></span><div><strong>Spatial voice audio</strong><small>Microphone, proximity & room eligibility</small></div></div>
+      <span className="audio-ui-coming"><VolumeX size={13}/> {backendOnline && active ? 'WebRTC ready · join a peer' : 'Voice offline until mic + backend'}</span>
     </div>
 
     <div className="audio-ui-grid">
@@ -121,7 +133,7 @@ export default function AudioControlPanel({ position, people, connection }) {
     {zone.rangeLabel} | {backendOnline ? 'live positions' : 'demo positions'}
   </span>
 </div>
-      <div className="audio-ui-cell"><small>BACKEND SIGNALING</small><strong className={backendOnline ? 'audio-ui-online' : ''}>{backendOnline ? 'Backend live' : 'Local demo'}</strong><span>{backendOnline ? <><Wifi size={12}/> Avatar movement synchronization is connected. Microphone permission does not mean WebRTC voice communication is active.</> : <><WifiOff size={12}/> Audio still not connected</>}</span></div>
+      <div className="audio-ui-cell"><small>BACKEND SIGNALING</small><strong className={backendOnline ? 'audio-ui-online' : ''}>{backendOnline ? 'Backend live' : 'Local demo'}</strong><span>{backendOnline ? <><Wifi size={12}/> Signaling online. Enable your microphone to connect to eligible users.</> : <><WifiOff size={12}/> Audio still not connected</>}</span></div>
       <div className="audio-ui-cell"><small>MICROPHONE</small><strong role="status" aria-live="polite" aria-atomic="true">{micLabel}</strong><span><Shield size={12}/> Permission: {permission}</span></div>
     </div>
 
@@ -130,7 +142,7 @@ export default function AudioControlPanel({ position, people, connection }) {
         <button type="button" onClick={toggleMute} aria-pressed={micStatus === 'muted'} className="audio-ui-primary">{micStatus === 'muted' ? <MicOff size={16}/> : <Mic size={16}/>} {micStatus === 'muted' ? 'Unmute' : 'Mute'}</button>
         <button type="button" onClick={release} className="audio-ui-secondary">Stop microphone</button>
       </>}
-      <p className="audio-ui-disclaimer"><Radio size={13}/> Microphone stays on this device. No audio is sent until WebRTC integration is implemented.</p>
+      <p className="audio-ui-disclaimer"><Radio size={13}/> When mic is enabled and backend connected, audio can transmit to eligible users. Muting disables transmission. Leaving this workspace stops the mic.</p>
     </div>
     {error && <p className="audio-ui-error" role="alert">{error}</p>}
   </section>;

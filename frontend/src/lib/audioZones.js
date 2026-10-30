@@ -63,3 +63,19 @@ export function getAudioZonePreview(position, peers = []) {
         : 'No active room',
   };
 }
+export function canConnectAudio(a, b) {
+  const roomA = getRoomIdAtPosition(a?.x, a?.y);
+  const roomB = getRoomIdAtPosition(b?.x, b?.y);
+  return !!roomA && roomA === roomB &&
+    (roomA !== 'studio' ||
+      Math.hypot(a.x - b.x, a.y - b.y) <= PROXIMITY_RADIUS);
+}
+
+// Distance attenuation used by the WebRTC engine. Room rules reuse the
+// existing canConnectAudio function and preserve getAudioZonePreview.
+export function getAudioVolume(local, remote) {
+  if (!canConnectAudio(local, remote)) return 0;
+  if (getRoomIdAtPosition(local.x, local.y) !== 'studio') return 1;
+  const dist = Math.hypot(local.x - remote.x, local.y - remote.y);
+  return Math.max(0.01, 1 - 0.85 * dist / PROXIMITY_RADIUS);
+}

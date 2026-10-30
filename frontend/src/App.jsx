@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, AudioLines, BookOpen, Check,
   CheckCheck, ChevronDown, ChevronRight, CircleDot, Code2, Compass, Copy, Cpu,
@@ -10,6 +10,7 @@ import {
 import SpaceCanvas from './components/SpaceCanvas.jsx';
 import ThreeWorkspace from './components/ThreeWorkspace.jsx';
 import AudioControlPanel from './components/AudioControlPanel.jsx';
+import { createWebRTCAudio } from './lib/webrtcAudio.js';
 import { useMovement } from './hooks/useMovement.js';
 import { distance, inRange } from './lib/movement.js';
 import { MY_PLAYER, PROXIMITY_RADIUS, SPACES, TEAM, WORLD, simulatedTeam } from './lib/world.js';
@@ -122,7 +123,7 @@ function PresencePanel({ people, position, connection, selected, setSelected, fi
 function RadarIcon() { return <Crosshair size={20}/>; }
 function FeatureCard({ icon: Icon, value, title, note, accent = '' }) { return <div className={`feature-card ${accent}`}><span className="feature-ico"><Icon size={17}/></span><div><strong>{value}</strong><span>{title}</span><small>{note}</small></div></div>; }
 
-function WorkspaceView({ movement, people, connection, setView, showRadius, setShowRadius, showTrail, setShowTrail, guide, onShare, notify, selected, setSelected, filter, setFilter }) {
+function WorkspaceView({ movement, people, connection, setView, showRadius, setShowRadius, showTrail, setShowTrail, guide, onShare, notify, selected, setSelected, filter, setFilter, onStreamReady, onStreamStopped }) {
   const frameRef = useRef(null);
   const [mode,setMode] = useState('3d');
   const [focusRoom,setFocusRoom] = useState('all');
@@ -163,7 +164,7 @@ function WorkspaceView({ movement, people, connection, setView, showRadius, setS
         <div className="canvas-statusbar"><div><MapPin size={15}/><strong>X {Math.round(movement.position.x)}</strong><span>/</span><strong>Y {Math.round(movement.position.y)}</strong></div><div className="statusbar-right"><span className={`walking-dot ${movement.movement !== 'Idle' ? 'walking-active' : ''}`}/>{movement.movement}<i/>WASD · DRAG CAMERA · SCROLL ZOOM</div></div>
       </div>
       <div className="movement-footer"><div className="footer-desktop"><span className="footer-foot-icon"><Keyboard size={17}/></span><b>Controls</b><span>WASD / arrow keys · Drag to orbit · Scroll to zoom</span></div><button onClick={guide}>How it works <ArrowUpRight size={14}/></button></div>
-      <AudioControlPanel position={movement.position} people={people} connection={connection}/>
+      <AudioControlPanel position={movement.position} people={people} connection={connection} onStreamReady={onStreamReady} onStreamStopped={onStreamStopped}/>
       <ArrowPad hold={movement.hold}/>
       <div className="feature-grid">
         <FeatureCard icon={Route} value={Math.round(movement.metersTravelled).toLocaleString()} title="World units travelled" note="Tracked in this session" accent="mint-card"/>
@@ -172,7 +173,7 @@ function WorkspaceView({ movement, people, connection, setView, showRadius, setS
       </div>
     </div>
     <PresencePanel people={people} position={movement.position} connection={connection} selected={selected} setSelected={setSelected} filter={filter} setFilter={setFilter} onShare={onShare}/></div>
-    <div className="section-footer"><span><ShieldCheck size={15}/> No microphone or camera permission in this demo.</span><span><Zap size={15}/> Collision-aware movement and pathfinding</span><button onClick={()=>setView('sprint')}>View development report <ArrowUpRight size={14}/></button></div>
+    <div className="section-footer"><span><ShieldCheck size={15}/> Microphone requests permission only on click; camera is not used.</span><span><Zap size={15}/> Collision-aware movement and pathfinding</span><button onClick={()=>setView('sprint')}>View development report <ArrowUpRight size={14}/></button></div>
   </div>;
 }
 
@@ -190,7 +191,7 @@ const MILESTONES = [
   {title:'Collision + pathfinding',detail:'Object hitboxes, edge bounds, A* click-to-navigate, walking trail',who:'Bharath',status:'Implemented',icon:Route},
   {title:'Presence and proximity UI',detail:'Distance in Canvas units; clear offline demo mode',who:'Bharath',status:'Implemented',icon:Crosshair},
   {title:'Socket.IO event adapter',detail:'Prepared, not yet verified against Jeevith’s server',who:'Bharath + Jeevith',status:'Needs integration',icon:Signal},
-  {title:'Real-time voice / WebRTC',detail:'Not claimed as a Day 01 frontend deliverable',who:'Jinithasri',status:'Later sprint',icon:Headphones},
+  {title:'Real-time voice / WebRTC',detail:'WebRTC integration available for testing with compatible backend',who:'Jinithasri + Bharath',status:'Needs testing',icon:Headphones},
 ];
 function SprintView({ onGuide }) {
   return <div className="page secondary-page sprint-page"><div className="hero-overline"><span className="overline-diamond"/> WEEK 01 / ENGINEERING LOG</div><h1>Make the progress<br/><span>measurable.</span></h1><p className="section-lead">A truthful breakdown of what this Day 01 frontend implements — and what still depends on team integration. Run the tests before submission.</p>
@@ -202,7 +203,7 @@ function SprintView({ onGuide }) {
 
 function DemoGuide({ close }) {
   useEffect(()=>{const key=e=>{if(e.key==='Escape')close();};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[close]);
-  return <div className="dialog-backdrop" onPointerDown={close}><section className="guide-dialog" role="dialog" aria-modal="true" aria-labelledby="guide-title" onPointerDown={e=>e.stopPropagation()}><button className="guide-close icon-plain" aria-label="Close guide" onClick={close}><X size={18}/></button><div className="guide-icon"><Keyboard size={25}/></div><div className="hero-overline">QUICK START / SPATIAL MOVEMENT</div><h2 id="guide-title">Move like you mean it.</h2><p className="guide-intro">Every coordinate below is a <strong>Canvas world unit</strong>. Day 01 covers movement and signaling preparation, not voice calling.</p><div className="guide-item"><div className="guide-keys"><kbd>W</kbd><div><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div></div><div><b>Keyboard walk</b><p>Use WASD or arrow keys. Diagonals have normalized speed.</p></div></div><div className="guide-item"><div className="guide-icon-small"><MousePointer2 size={24}/></div><div><b>Click-to-navigate</b><p>Click anywhere on the map. A* automatically routes around furniture.</p></div></div><div className="guide-item"><div className="guide-icon-small"><Crosshair size={24}/></div><div><b>Proximity awareness</b><p>Within {PROXIMITY_RADIUS} units, teammate avatars get highlighted.</p></div></div><div className="guide-item"><div className="guide-icon-small"><WifiOff size={24}/></div><div><b>Local demo by default</b><p>Other members are simulated until a compatible Socket.IO backend is connected.</p></div></div><button className="guide-cta" onClick={close}>Start exploring <ArrowRight size={16}/></button></section></div>;
+  return <div className="dialog-backdrop" onPointerDown={close}><section className="guide-dialog" role="dialog" aria-modal="true" aria-labelledby="guide-title" onPointerDown={e=>e.stopPropagation()}><button className="guide-close icon-plain" aria-label="Close guide" onClick={close}><X size={18}/></button><div className="guide-icon"><Keyboard size={25}/></div><div className="hero-overline">QUICK START / SPATIAL MOVEMENT</div><h2 id="guide-title">Move like you mean it.</h2><p className="guide-intro">Every coordinate below is a <strong>Canvas world unit</strong>. Movement and optional microphone-based WebRTC are available in this test branch.</p><div className="guide-item"><div className="guide-keys"><kbd>W</kbd><div><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div></div><div><b>Keyboard walk</b><p>Use WASD or arrow keys. Diagonals have normalized speed.</p></div></div><div className="guide-item"><div className="guide-icon-small"><MousePointer2 size={24}/></div><div><b>Click-to-navigate</b><p>Click anywhere on the map. A* automatically routes around furniture.</p></div></div><div className="guide-item"><div className="guide-icon-small"><Crosshair size={24}/></div><div><b>Proximity awareness</b><p>Within {PROXIMITY_RADIUS} units, teammate avatars get highlighted.</p></div></div><div className="guide-item"><div className="guide-icon-small"><WifiOff size={24}/></div><div><b>Local demo by default</b><p>Other members are simulated until a compatible Socket.IO backend is connected.</p></div></div><button className="guide-cta" onClick={close}>Start exploring <ArrowRight size={16}/></button></section></div>;
 }
 
 export default function App() {
@@ -219,11 +220,69 @@ export default function App() {
   const [toast,setToast] = useState('');
   const toastTimer=useRef(null);
   const socket=useRef(null);
+  const audioEngine=useRef(null);
+  const localStreamRef=useRef(null);
+  const peopleRef=useRef([]);
   const sessionId=useRef(`bharath-${Math.random().toString(36).slice(2,9)}`);
   const notify=useCallback((message)=>{setToast(message);clearTimeout(toastTimer.current);toastTimer.current=window.setTimeout(()=>setToast(''),3600);},[]);
   const broadcast=useCallback((p)=>{if(socket.current?.connected)socket.current.emit(EVENTS.move,{roomId:'main',id:sessionId.current,x:p.x,y:p.y});},[]);
   const movement=useMovement(broadcast);
   const people=connection==='online'?livePeople:demoPeople;
+  peopleRef.current=livePeople; // Never connect audio to simulated demo avatars.
+
+  const removeRemoteAudio=useCallback((peerId)=>{
+    const el=document.getElementById(`remote-audio-${peerId}`);
+    if (el) { el.pause(); el.srcObject=null; el.remove(); }
+  },[]);
+  const stopAudioEngine=useCallback(()=>{
+    audioEngine.current?.close();
+    audioEngine.current=null;
+    document.querySelectorAll('[id^="remote-audio-"]').forEach(el=>{
+      el.pause(); el.srcObject=null; el.remove();
+    });
+  },[]);
+  const startAudioEngine=useCallback((activeSocket,stream)=>{
+    stopAudioEngine();
+    if (!activeSocket?.connected || !stream?.active) return;
+    const engine=createWebRTCAudio({
+      socket:activeSocket,
+      localStream:stream,
+      getLocalPosition:()=>movement.positionRef.current,
+      getParticipants:()=>peopleRef.current,
+      onRemoteStream:(peerId, remoteStream)=>{
+        let audio=document.getElementById(`remote-audio-${peerId}`);
+        if (!audio) {
+          audio=document.createElement('audio');
+          audio.id=`remote-audio-${peerId}`;
+          audio.autoplay=true;
+          audio.playsInline=true;
+          document.body.appendChild(audio);
+        }
+        audio.srcObject=remoteStream;
+        audio.muted=false;
+        audio.play().catch(error=>console.error('[WebRTC] Remote playback blocked:',error));
+      },
+      onRemoteStreamRemoved:removeRemoteAudio,
+      onRemoteVolume:(peerId,volume)=>{
+        const audio=document.getElementById(`remote-audio-${peerId}`);
+        if (audio) audio.volume=Math.max(0,Math.min(1,volume));
+      },
+      onError:error=>{console.error('[WebRTC]',error);notify(`WebRTC issue: ${error.message}`);},
+    });
+    audioEngine.current=engine;
+    engine.syncPeers();
+    engine.announceReady();
+  },[movement.positionRef,stopAudioEngine,removeRemoteAudio,notify]);
+  const handleStreamReady=useCallback((stream)=>{
+    localStreamRef.current=stream;
+    if (socket.current?.connected) startAudioEngine(socket.current,stream);
+    else notify('Microphone ready. Connect backend to talk to other users.');
+  },[startAudioEngine,notify]);
+  const handleStreamStopped=useCallback(()=>{
+    localStreamRef.current=null;
+    stopAudioEngine();
+  },[stopAudioEngine]);
+  useEffect(()=>{audioEngine.current?.syncPeers();},[livePeople,movement.position]);
 
   useEffect(()=>{
     const timer=setInterval(()=>{setDemoPeople(simulatedTeam(performance.now()/1000));},240);
@@ -233,10 +292,16 @@ export default function App() {
     const handler=(e)=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();setView('workspace');window.setTimeout(()=>document.querySelector('.search-box input')?.focus(),50);}};
     window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);
   },[]);
+  useEffect(()=>()=>{
+    stopAudioEngine();
+    localStreamRef.current?.getTracks().forEach(track=>track.stop());
+    localStreamRef.current=null;
+  },[stopAudioEngine]);
   const disconnect=()=>{
+    stopAudioEngine();
     // Explicit leave is optional; backend also broadcasts an updated list on disconnect.
     if(socket.current?.connected)socket.current.emit(EVENTS.leave);
-    socket.current?.disconnect();socket.current=null;setConnection('demo');setLivePeople([]);notify('Disconnected. Back in local demo mode.');
+    socket.current?.disconnect();socket.current=null;setConnection('demo');setLivePeople([]);peopleRef.current=[];notify('Disconnected. Back in local demo mode.');
   };
   const toggleBackend=()=>{
     if (socket.current) {disconnect();return;}
@@ -244,17 +309,29 @@ export default function App() {
     const s=createSignalClient(); socket.current=s;
     s.on('connect',()=>{
       if(socket.current!==s)return;
-      setConnection('online');setLivePeople([]);
+      setConnection('online');setLivePeople([]);peopleRef.current=[];
       s.emit(EVENTS.join,{roomId:'main',player:{...MY_PLAYER,id:sessionId.current,...movement.positionRef.current}});
+      if (localStreamRef.current) startAudioEngine(s,localStreamRef.current);
       notify('Connected. Awaiting backend participant updates.');
     });
-    s.on(EVENTS.update,(players)=>{if(socket.current===s)setLivePeople(parsePlayers(players,sessionId.current));});
-    s.on(EVENTS.left,({id}={})=>{if(typeof id==='string')setLivePeople(prev=>prev.filter(p=>p.id!==id));});
+    s.on(EVENTS.update,(players)=>{
+      if(socket.current!==s)return;
+      const parsed=parsePlayers(players,sessionId.current);
+      peopleRef.current=parsed;
+      setLivePeople(parsed);
+      audioEngine.current?.syncPeers();
+    });
+    s.on(EVENTS.left,({id}={})=>{
+      if(typeof id!=='string' || socket.current!==s)return;
+      peopleRef.current=peopleRef.current.filter(p=>p.id!==id);
+      setLivePeople(peopleRef.current);
+      audioEngine.current?.syncPeers();
+    });
     s.on('connect_error',()=>{
-      if(socket.current===s){s.disconnect();socket.current=null;setConnection('demo');setLivePeople([]);notify('Backend unavailable — local demo still works.');}
+      if(socket.current===s){stopAudioEngine();s.disconnect();socket.current=null;setConnection('demo');setLivePeople([]);peopleRef.current=[];notify('Backend unavailable — local demo still works.');}
     });
     s.on('disconnect',()=>{
-      if(socket.current===s){socket.current=null;setConnection('demo');setLivePeople([]);notify('Backend disconnected — local demo restored.');}
+      if(socket.current===s){stopAudioEngine();socket.current=null;setConnection('demo');setLivePeople([]);peopleRef.current=[];notify('Backend disconnected — local demo restored.');}
     });
     s.connect();
   };
@@ -265,7 +342,7 @@ export default function App() {
   return <div className="app-layout">
     <Sidebar view={view} setView={setView} open={menuOpen} setOpen={setMenuOpen} openGuide={()=>setGuideOpen(true)}/>
     <main className="main-area"><TitleBar view={view} connection={connection} onConnect={toggleBackend} onMenu={()=>setMenuOpen(true)} onGuide={()=>setGuideOpen(true)}/>
-      {view==='workspace' && <WorkspaceView movement={movement} people={people} connection={connection} setView={setView} showRadius={showRadius} setShowRadius={setShowRadius} showTrail={showTrail} setShowTrail={setShowTrail} guide={()=>setGuideOpen(true)} onShare={share} notify={notify} selected={selected} setSelected={setSelected} filter={filter} setFilter={setFilter}/>}
+      {view==='workspace' && <WorkspaceView movement={movement} people={people} connection={connection} setView={setView} showRadius={showRadius} setShowRadius={setShowRadius} showTrail={showTrail} setShowTrail={setShowTrail} guide={()=>setGuideOpen(true)} onShare={share} notify={notify} selected={selected} setSelected={setSelected} filter={filter} setFilter={setFilter} onStreamReady={handleStreamReady} onStreamStopped={handleStreamStopped}/>}
       {view==='team' && <TeamView people={people} connection={connection} pos={movement.position}/>}
       {view==='sprint' && <SprintView onGuide={()=>setGuideOpen(true)}/>}
     </main>
