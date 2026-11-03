@@ -10,7 +10,7 @@ const ICE_SERVERS = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
  */
 export function createWebRTCAudio({
   socket, localStream, getLocalPosition, getParticipants,
-  onRemoteStream, onRemoteStreamRemoved, onRemoteVolume, onError = console.error,
+  onRemoteStream, onRemoteStreamRemoved, onRemoteVolume, onPeerStateChange, onError = console.error,
 }) {
   const peers = new Map();
   const pendingCandidates = new Map();
@@ -35,6 +35,7 @@ export function createWebRTCAudio({
     }
     inProgress.delete(id);
     pendingCandidates.delete(id);
+    onPeerStateChange?.(id, 'closed');
     onRemoteStreamRemoved?.(id);
   }
 
@@ -43,6 +44,7 @@ export function createWebRTCAudio({
     if (peers.has(id)) return peers.get(id);
     const peer = new RTCPeerConnection(ICE_SERVERS);
     peers.set(id, peer);
+    onPeerStateChange?.(id, 'connecting');
     // Don't reset ICE candidates that arrived before the offer.
     if (!pendingCandidates.has(id)) pendingCandidates.set(id, []);
 
@@ -57,9 +59,11 @@ export function createWebRTCAudio({
       }
     };
     peer.onconnectionstatechange = () => {
+      onPeerStateChange?.(id, peer.connectionState);
       if (peer.connectionState === 'failed') {
         onError(new Error(`WebRTC connection failed with ${id}; check network/ICE`));
         closePeer(id);
+        onPeerStateChange?.(id, 'failed');
       } else if (peer.connectionState === 'closed') {
         onRemoteStreamRemoved?.(id);
       }

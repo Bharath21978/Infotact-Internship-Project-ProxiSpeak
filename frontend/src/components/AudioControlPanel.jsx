@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Headphones, Mic, MicOff, Radio, Shield, VolumeX, Wifi, WifiOff } from 'lucide-react';
 import { getAudioZonePreview } from '../lib/audioZones.js';
+import { getVoiceStatus } from '../lib/voiceStatus.js';
 import './audio-controls.css';
 
 /**
@@ -8,7 +9,7 @@ import './audio-controls.css';
  * parent App receives the MediaStream and attaches it to the WebRTC engine.
  * Stopping this component's microphone also stops the parent audio engine.
  */
-export default function AudioControlPanel({ position, people, connection, onStreamReady, onStreamStopped }) {
+export default function AudioControlPanel({ position, people, connection, peerStates = {}, onStreamReady, onStreamStopped }) {
   const [micStatus, setMicStatus] = useState('off'); // off | requesting | ready | muted | error
   const [permission, setPermission] = useState('Not requested');
   const [error, setError] = useState('');
@@ -18,6 +19,7 @@ export default function AudioControlPanel({ position, people, connection, onStre
   const requestId = useRef(0);
   const zone = getAudioZonePreview(position, people);
   const backendOnline = connection === 'online';
+  const voiceStatus = getVoiceStatus({ backendOnline, micStatus, eligiblePeers: zone.nearbyPeers.length, peerStates });
 
   const release = useCallback(() => {
     requestId.current += 1; // invalidate in-flight getUserMedia responses
@@ -107,12 +109,12 @@ export default function AudioControlPanel({ position, people, connection, onStre
   };
 
   const active = micStatus === 'ready' || micStatus === 'muted';
-  const micLabel = micStatus === 'ready' ? (backendOnline ? 'Mic on · WebRTC ready' : 'Mic on · waiting for backend') : micStatus === 'muted' ? 'Muted' : micStatus === 'requesting' ? 'Requesting permission' : 'Mic off';
+  const micLabel = micStatus === 'ready' ? (backendOnline ? 'Mic on · voice enabled' : 'Mic on · waiting for backend') : micStatus === 'muted' ? 'Muted' : micStatus === 'requesting' ? 'Requesting permission' : 'Mic off';
 
   return <section className="audio-ui-panel" aria-label="Audio readiness controls">
     <div className="audio-ui-heading">
       <div className="audio-ui-title"><span className="audio-ui-title-icon"><Headphones size={20}/></span><div><strong>Spatial voice audio</strong><small>Microphone, proximity & room eligibility</small></div></div>
-      <span className="audio-ui-coming"><VolumeX size={13}/> {backendOnline && active ? 'WebRTC ready · join a peer' : 'Voice offline until mic + backend'}</span>
+      <span className="audio-ui-coming" role="status" aria-live="polite"><VolumeX size={13}/> {voiceStatus.label}</span>
     </div>
 
     <div className="audio-ui-grid">

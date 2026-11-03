@@ -123,7 +123,7 @@ function PresencePanel({ people, position, connection, selected, setSelected, fi
 function RadarIcon() { return <Crosshair size={20}/>; }
 function FeatureCard({ icon: Icon, value, title, note, accent = '' }) { return <div className={`feature-card ${accent}`}><span className="feature-ico"><Icon size={17}/></span><div><strong>{value}</strong><span>{title}</span><small>{note}</small></div></div>; }
 
-function WorkspaceView({ movement, people, connection, setView, showRadius, setShowRadius, showTrail, setShowTrail, guide, onShare, notify, selected, setSelected, filter, setFilter, onStreamReady, onStreamStopped }) {
+function WorkspaceView({ movement, people, connection, peerStates, setView, showRadius, setShowRadius, showTrail, setShowTrail, guide, onShare, notify, selected, setSelected, filter, setFilter, onStreamReady, onStreamStopped }) {
   const frameRef = useRef(null);
   const [mode,setMode] = useState('3d');
   const [focusRoom,setFocusRoom] = useState('all');
@@ -164,7 +164,7 @@ function WorkspaceView({ movement, people, connection, setView, showRadius, setS
         <div className="canvas-statusbar"><div><MapPin size={15}/><strong>X {Math.round(movement.position.x)}</strong><span>/</span><strong>Y {Math.round(movement.position.y)}</strong></div><div className="statusbar-right"><span className={`walking-dot ${movement.movement !== 'Idle' ? 'walking-active' : ''}`}/>{movement.movement}<i/>WASD · DRAG CAMERA · SCROLL ZOOM</div></div>
       </div>
       <div className="movement-footer"><div className="footer-desktop"><span className="footer-foot-icon"><Keyboard size={17}/></span><b>Controls</b><span>WASD / arrow keys · Drag to orbit · Scroll to zoom</span></div><button onClick={guide}>How it works <ArrowUpRight size={14}/></button></div>
-      <AudioControlPanel position={movement.position} people={people} connection={connection} onStreamReady={onStreamReady} onStreamStopped={onStreamStopped}/>
+      <AudioControlPanel position={movement.position} people={people} connection={connection} peerStates={peerStates} onStreamReady={onStreamReady} onStreamStopped={onStreamStopped}/>
       <ArrowPad hold={movement.hold}/>
       <div className="feature-grid">
         <FeatureCard icon={Route} value={Math.round(movement.metersTravelled).toLocaleString()} title="World units travelled" note="Tracked in this session" accent="mint-card"/>
@@ -213,6 +213,7 @@ export default function App() {
   const [showRadius,setShowRadius] = useState(true);
   const [showTrail,setShowTrail] = useState(true);
   const [connection,setConnection] = useState('demo');
+  const [audioPeerStates,setAudioPeerStates] = useState({});
   const [livePeople,setLivePeople] = useState([]);
   const [demoPeople,setDemoPeople] = useState(TEAM);
   const [selected,setSelected] = useState(null);
@@ -237,6 +238,7 @@ export default function App() {
   const stopAudioEngine=useCallback(()=>{
     audioEngine.current?.close();
     audioEngine.current=null;
+    setAudioPeerStates({});
     document.querySelectorAll('[id^="remote-audio-"]').forEach(el=>{
       el.pause(); el.srcObject=null; el.remove();
     });
@@ -267,6 +269,15 @@ export default function App() {
         const audio=document.getElementById(`remote-audio-${peerId}`);
         if (audio) audio.volume=Math.max(0,Math.min(1,volume));
       },
+      onPeerStateChange:(peerId, state)=>setAudioPeerStates(previous=>{
+        if (state === 'closed') {
+          if (!(peerId in previous)) return previous;
+          const next = { ...previous };
+          delete next[peerId];
+          return next;
+        }
+        return previous[peerId] === state ? previous : { ...previous, [peerId]: state };
+      }),
       onError:error=>{console.error('[WebRTC]',error);notify(`WebRTC issue: ${error.message}`);},
     });
     audioEngine.current=engine;
@@ -342,7 +353,7 @@ export default function App() {
   return <div className="app-layout">
     <Sidebar view={view} setView={setView} open={menuOpen} setOpen={setMenuOpen} openGuide={()=>setGuideOpen(true)}/>
     <main className="main-area"><TitleBar view={view} connection={connection} onConnect={toggleBackend} onMenu={()=>setMenuOpen(true)} onGuide={()=>setGuideOpen(true)}/>
-      {view==='workspace' && <WorkspaceView movement={movement} people={people} connection={connection} setView={setView} showRadius={showRadius} setShowRadius={setShowRadius} showTrail={showTrail} setShowTrail={setShowTrail} guide={()=>setGuideOpen(true)} onShare={share} notify={notify} selected={selected} setSelected={setSelected} filter={filter} setFilter={setFilter} onStreamReady={handleStreamReady} onStreamStopped={handleStreamStopped}/>}
+      {view==='workspace' && <WorkspaceView movement={movement} people={people} connection={connection} peerStates={audioPeerStates} setView={setView} showRadius={showRadius} setShowRadius={setShowRadius} showTrail={showTrail} setShowTrail={setShowTrail} guide={()=>setGuideOpen(true)} onShare={share} notify={notify} selected={selected} setSelected={setSelected} filter={filter} setFilter={setFilter} onStreamReady={handleStreamReady} onStreamStopped={handleStreamStopped}/>}
       {view==='team' && <TeamView people={people} connection={connection} pos={movement.position}/>}
       {view==='sprint' && <SprintView onGuide={()=>setGuideOpen(true)}/>}
     </main>
