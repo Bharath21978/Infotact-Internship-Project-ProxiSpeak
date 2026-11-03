@@ -28,3 +28,9 @@ test('malformed packets and labels are safely handled',()=>{
   assert.equal(p.name.length,30);
   assert.equal(p.color,'#8eaaff');
 });
+
+
+test('socket IDs are preserved for targeted WebRTC signaling', () => {
+  const [peer]=parsePlayers([{ id:'person-a', socketId:'socket-123', name:'Peer', x:100, y:100 }], 'other');
+  assert.equal(peer.socketId, 'socket-123');
+});

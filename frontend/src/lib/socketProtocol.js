@@ -18,6 +18,6 @@ export function parsePlayers(payload, selfId) {
     if (!Number.isFinite(p.x) || !Number.isFinite(p.y) || p.x < 0 || p.x > WORLD.width || p.y < 0 || p.y > WORLD.height) return [];
     unique.add(p.id);
     const name = typeof p.name === 'string' ? p.name.trim().slice(0, 30) : 'Guest';
-    return [{ id: p.id, name: name || 'Guest', initials: (name || 'GU').slice(0, 2).toUpperCase(), role: typeof p.role === 'string' ? p.role.slice(0, 35) : 'Participant', x: p.x, y: p.y, color: /^#[0-9a-f]{6}$/i.test(p.color) ? p.color : '#8eaaff' }];
+    return [{ id: p.id, name: name || 'Guest', initials: (name || 'GU').slice(0, 2).toUpperCase(), role: typeof p.role === 'string' ? p.role.slice(0, 35) : 'Participant', x: p.x, y: p.y, socketId: typeof p.socketId === 'string' && p.socketId.length <= 128 ? p.socketId : null, color: /^#[0-9a-f]{6}$/i.test(p.color) ? p.color : '#8eaaff' }];
   });
 }

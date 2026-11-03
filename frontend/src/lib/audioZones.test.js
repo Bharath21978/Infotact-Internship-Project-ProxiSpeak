@@ -92,3 +92,19 @@ test('Room transitions update audio eligibility', () => {
     ['lounge-user']
   );
 });
+// The actual WebRTC audio engine must follow the same eligibility rules as the UI.
+import { canConnectAudio, getAudioVolume } from './audioZones.js';
+
+test('WebRTC eligibility matches studio preview and handles invalid positions', () => {
+  const a = { x: 286, y: 365 };
+  assert.equal(canConnectAudio(a, { x: 454, y: 365 }), true);
+  assert.equal(canConnectAudio(a, { x: 455, y: 365 }), false);
+  assert.equal(canConnectAudio(null, a), false);
+  assert.equal(getAudioVolume(a, { x: 455, y: 365 }), 0);
+});
+test('WebRTC volume fades in Studio but is full throughout one non-Studio room', () => {
+  const a={ x: 286, y: 365 };
+  assert.ok(getAudioVolume(a, { x: 400, y: 365 }) < getAudioVolume(a, { x: 290, y: 365 }));
+  assert.equal(getAudioVolume({ x: 810, y: 60 }, { x: 1140, y: 300 }), 1);
+  assert.equal(getAudioVolume({ x: 810, y: 60 }, { x: 900, y: 500 }), 0);
+});
