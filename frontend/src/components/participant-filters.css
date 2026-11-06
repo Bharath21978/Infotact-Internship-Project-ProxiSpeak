@@ -1,0 +1,6 @@
+/* Room-aware participant discoverability; does not modify audio or signaling. */
+.presence-room-filter{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 12px}
+.presence-room-filter span{font-size:11px;color:#91abbd;white-space:nowrap}
+.presence-room-btn{display:inline-flex;align-items:center;gap:8px;min-height:34px;border-radius:10px;padding:7px 12px;background:#192b3d;border:1px solid #426177;color:#d9eff7;font-size:12px;font-weight:700;cursor:pointer;transition:background .18s,border-color .18s}
+.presence-room-btn:hover,.presence-room-btn:focus-visible{border-color:#82f1d3;outline-offset:2px}
+.presence-room-btn.is-active{background:#17473f;color:#a5ffe5;border-color:#70d8bf}

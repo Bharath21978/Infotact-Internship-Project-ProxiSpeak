@@ -10,6 +10,8 @@ import {
 import SpaceCanvas from './components/SpaceCanvas.jsx';
 import ThreeWorkspace from './components/ThreeWorkspace.jsx';
 import AudioControlPanel from './components/AudioControlPanel.jsx';
+import { filterParticipantsByRoom } from './lib/participantFilters.js';
+import './components/participant-filters.css';
 import { createWebRTCAudio } from './lib/webrtcAudio.js';
 import { useMovement } from './hooks/useMovement.js';
 import { distance, inRange } from './lib/movement.js';
@@ -105,15 +107,20 @@ function PersonRow({ person, me, pos, selected, onSelect, live }) {
 }
 
 function PresencePanel({ people, position, connection, selected, setSelected, filter, setFilter, onShare }) {
-  const matches = useMemo(()=> people.filter((p)=>p.name.toLowerCase().includes(filter.toLowerCase())), [people,filter]);
+  const [sameRoomOnly, setSameRoomOnly] = useState(false);
+  const matches = useMemo(() => filterParticipantsByRoom(people, position, filter, sameRoomOnly), [people, position, filter, sameRoomOnly]);
   const nearby = people.filter(p=>inRange(position,p)).length;
   return <aside className="presence-card">
     <div className="presence-overline"><span>YOUR SESSION</span><Pill variant="panel-count">{people.length+1} AVATARS</Pill></div>
     <div className="presence-intro"><div><h3>People in space<span className="title-flower">✳</span></h3><p>{connection === 'online' ? 'Server-reported participants' : 'Simulated teammates · demo only'}</p></div><div className="people-graphic"><Users size={20}/></div></div>
     <label className="search-box"><Search size={17}/><input value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Search people…" aria-label="Search people"/><span>⌘ K</span></label>
+    <div className="presence-room-filter">
+      <button type="button" className={`presence-room-btn ${sameRoomOnly ? 'is-active' : ''}`} aria-pressed={sameRoomOnly} onClick={() => setSameRoomOnly(value => !value)}><MapPin size={14}/>{sameRoomOnly ? 'My room only' : 'All rooms'}</button>
+      <span>{matches.length} shown</span>
+    </div>
     <div className="person-list"><PersonRow person={MY_PLAYER} pos={position} me selected={selected===MY_PLAYER.id} onSelect={()=>setSelected(MY_PLAYER.id)}/>
     {matches.map(person=><PersonRow key={person.id} person={person} pos={position} selected={selected===person.id} onSelect={()=>setSelected(person.id)} />)}
-    {matches.length===0 && <p className="search-empty">No names match your search.</p>}
+    {matches.length===0 && <p className="search-empty">No people match the current filters.</p>}
     </div>
     <div className="panel-stat"><div className="near-icon"><RadarIcon/></div><div><b>{nearby} {nearby===1?'teammate':'teammates'} in range</b><p>{connection === 'online' ? 'Based on real server positions' : 'Calculated from mock positions'}</p></div><span className="stat-online"/></div>
     <button className="share-btn" onClick={onShare}><Link2 size={17}/> Copy demo link <ArrowRight size={17}/></button>
