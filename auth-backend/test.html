@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ProxiSpeak Backend Test Page</title>
+</head>
+<body>
+    <h2>ProxiSpeak backend test page</h2>
+    <p><b>Do not open this file by double-clicking it.</b> Cookies and CORS only
+    work from an allowed origin. Serve it on port 5173:</p>
+    <pre>npx serve -l 5173 .      (then open http://localhost:5173/test.html)</pre>
+    <p>Backend must be running on <code>http://localhost:4000</code>
+    with <code>AUTH_ENABLED=true</code>.</p>
+
+    <h3>1. Authentication</h3>
+    <input id="username" placeholder="username" value="tester">
+    <input id="email" placeholder="email" value="tester@example.com">
+    <input id="password" type="password" placeholder="password" value="password123">
+    <button onclick="auth('register')">Register</button>
+    <button onclick="auth('login')">Login</button>
+    <button onclick="me()">GET /me</button>
+    <button onclick="logout()">Logout</button>
+
+    <h3>2. Socket.IO (cookie auth)</h3>
+    <p id="status">Not connected</p>
+    <input id="room" placeholder="room id" value="studio">
+    <button onclick="connectSocket()">Connect</button>
+    <button onclick="join()">player:join</button>
+    X <input id="x" type="number" value="100" style="width:70px">
+    Y <input id="y" type="number" value="150" style="width:70px">
+    <button onclick="move()">player:move</button>
+    <button onclick="leave()">player:leave</button>
+    <button onclick="socket && socket.disconnect()">Disconnect</button>
+
+    <h3>Log</h3>
+    <pre id="log"></pre>
+
+    <script src="http://localhost:4000/socket.io/socket.io.js"></script>
+    <script>
+        const API = "http://localhost:4000";
+        let socket = null;
+        let roomId = null;
+
+        const el = (id) => document.getElementById(id);
+        const log = (label, data) => {
+            el("log").textContent =
+                label + ": " + JSON.stringify(data, null, 2) + "\n\n" + el("log").textContent;
+        };
+
+        async function call(path, method, body) {
+            const res = await fetch(API + path, {
+                method,
+                credentials: "include",          // sends/receives the HTTP-only cookie
+                headers: { "Content-Type": "application/json" },
+                body: body ? JSON.stringify(body) : undefined
+            });
+            log(method + " " + path + " -> " + res.status, await res.json());
+        }
+
+        function auth(kind) {
+            const body = { email: el("email").value, password: el("password").value };
+            if (kind === "register") body.username = el("username").value;
+            call("/api/auth/" + kind, "POST", body);
+        }
+        const me = () => call("/api/auth/me", "GET");
+        const logout = () => call("/api/auth/logout", "POST");
+
+        function connectSocket() {
+            if (socket) socket.disconnect();
+            socket = io(API, { withCredentials: true });   // required for the cookie
+
+            socket.on("connect", () => { el("status").textContent = "Connected: " + socket.id; });
+            socket.on("disconnect", (r) => { el("status").textContent = "Disconnected: " + r; });
+            socket.on("connect_error", (e) => {
+                el("status").textContent = "Refused: " + e.message + " " + JSON.stringify(e.data || {});
+            });
+            socket.on("players:update", (players) => log("players:update", players));
+            socket.on("auth:expired", (d) => log("auth:expired", d));
+            socket.on("rtc:offer", (d) => log("rtc:offer", d));
+            socket.on("rtc:answer", (d) => log("rtc:answer", d));
+            socket.on("rtc:ice-candidate", (d) => log("rtc:ice-candidate", d));
+        }
+
+        // id / name / role in the payload are ignored by the server for
+        // authenticated sockets; it uses the identity from the login cookie.
+        function join() {
+            roomId = el("room").value;
+            socket.emit("player:join", {
+                roomId,
+                player: { id: "ignored", name: "ignored", x: Number(el("x").value), y: Number(el("y").value) }
+            });
+        }
+        function move() {
+            socket.emit("player:move", { roomId, x: Number(el("x").value), y: Number(el("y").value) });
+        }
+        function leave() { socket.emit("player:leave"); }
+    </script>
+</body>
+</html>

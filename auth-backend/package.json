@@ -1,0 +1,32 @@
+{
+  "name": "avatar-backend",
+  "version": "1.0.0",
+  "description": "ProxiSpeak backend: Express + Socket.IO + MySQL authentication",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:integration": "node --test tests/integration/*.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.11.3",
+    "socket.io": "^4.8.4"
+  },
+  "devDependencies": {
+    "ws": "^8.18.0"
+  }
+}
