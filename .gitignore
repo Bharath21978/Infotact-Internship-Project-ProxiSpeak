@@ -6,3 +6,11 @@ dist/
 *.log
 *.pem
 *.key
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+*.log
+*.pem
+*.key
